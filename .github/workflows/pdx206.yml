@@ -15,7 +15,7 @@ env:
   KERNEL_SOURCE : "https://github.com/LineageOS/android_kernel_sony_sm8250.git"
   KERNEL_BRANCH : "lineage-23.2"
 
-  CLANG_SOURCE : "https://github.com/bachnxuan/aosp_clang_mirror/releases/download/clang-r614150-16311247/clang-r614150.tar.gz"
+  CLANG_SOURCE : "https://github.com/ZyCromerZ/Clang/releases/download/22.0.0git-20250928-release/Clang-22.0.0git-20250928.tar.gz"
   CLANG_BRANCH : ""
 
   GCC_GNU : false
