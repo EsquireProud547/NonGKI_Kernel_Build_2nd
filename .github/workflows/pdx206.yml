@@ -25,7 +25,7 @@ env:
   GCC_32_BRANCH : "android12L-release"
 
   DEFCONFIG_SOURCE: "https://raw.githubusercontent.com/EsquireProud547/NonGKI_Kernel_Build_2nd/refs/heads/mainline/pdx206_defconfig"
-  DEFCONFIG_NAME : ""
+  DEFCONFIG_NAME : "pdx206_defconfig"
   DEFCONFIG_ORIGIN_IMAGE: ""
   DEFCONFIG_FROM_BOOT: false
 
@@ -33,7 +33,7 @@ env:
   KERNELSU_BRANCH : ""
 
   KERNELSU_AUTO_GET : "true" # if u want easy setting kernelsu, u can true.
-  KERNELSU_AUTO_FORK : "next" # xxksu, rsuntk, next, resukisu and sukisu
+  KERNELSU_AUTO_FORK : "rsuntk" # xxksu, rsuntk, next, resukisu and sukisu
 
   SUSFS_ENABLE : false
   SUSFS_FIXED : false
