@@ -1,0 +1,123 @@
+Subject: [PATCH] susfs4ksu fix for LineageOS 4.19 sm8250 (Sony pdx206)
+
+Apply after susfs_patch_to_4.19.patch has been applied.
+
+This patch fixes 3 .rej file failures when applying
+susfs_patch_to_4.19.patch against LineageOS 23.2 sm8250 kernels:
+
+  - fs/super.c (1 .rej, 1 hunk remaining):
+    LineageOS inserts <linux/fs_context.h> between
+    <linux/user_namespace.h> and "internal.h", shifting the SUSFS
+    include position. Patch this hunk in at the new position.
+    (Note: get_anon_bdev() hunk already succeeds in the main patch
+    on LineageOS 4.19 sm8250, so only the include hunk is here.)
+
+  - fs/namespace.c (2 .rej hunks):
+    - Hunk #1 (include): same include shift as fs/super.c.
+    - Hunk #6 (vfs_kern_mount): LineageOS 4.19 rewrote vfs_kern_mount()
+      to use the fs_context API (fs_context_for_mount + fc_mount +
+      put_fs_context) instead of the original alloc_vfsmnt +
+      vfs_create_mount flow. Inject the SUSFS check before
+      fs_context_for_mount() and place the bypass_orig_flow label
+      between fc_mount() and put_fs_context().
+      susfs_alloc_non_unshare_ksu_vfsmnt() returns struct mount*, so
+      assign via &new_mnt->mnt to get struct vfsmount*.
+
+  - fs/proc/task_mmu.c (1 .rej hunk, pagemap_read):
+    LineageOS 4.19 rewrote pagemap_read() using
+    mmap_read_lock_killable(mm) (not down_read_killable(&mm->mmap_sem))
+    and shortened the function body, so the goto bypass_orig_flow
+    anchor no longer matches. Replace the goto/label pattern with an
+    if/continue block in-place.
+
+--- a/fs/super.c
++++ b/fs/super.c
+@@ -37,8 +37,16 @@
+ #include <linux/lockdep.h>
+ #include <linux/user_namespace.h>
+ #include <linux/fs_context.h>
++#ifdef CONFIG_KSU_SUSFS
++#include <linux/susfs_def.h>
++#endif // #ifdef CONFIG_KSU_SUSFS
+ #include "internal.h"
+ 
++#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
++extern bool susfs_is_current_ksu_domain(void);
++extern struct static_key_true susfs_is_sdcard_android_data_not_decrypted;
++#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
++
+ static int thaw_super_locked(struct super_block *sb);
+ 
+ static LIST_HEAD(super_blocks);
+================================================================
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -27,10 +27,21 @@
+ #include <linux/task_work.h>
+ #include <linux/sched/task.h>
+ #include <linux/fs_context.h>
++#ifdef CONFIG_KSU_SUSFS
++#include <linux/susfs_def.h>
++#endif // #ifdef CONFIG_KSU_SUSFS
+ 
+ #include "pnode.h"
+ #include "internal.h"
+ 
++#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
++extern bool susfs_is_current_ksu_domain(void);
++extern struct static_key_true susfs_is_sdcard_android_data_not_decrypted;
++
++#define CL_COPY_MNT_NS BIT(25) /* used by copy_mnt_ns() */
++
++#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
++
+ /* Maximum number of mounts in a mount namespace */
+ unsigned int sysctl_mount_max __read_mostly = 100000;
+ 
+@@ -1143,6 +1154,18 @@
+ 	if (!type)
+ 		return ERR_PTR(-EINVAL);
+ 
++#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
++	// - We will just stop checking for ksu process if /sdcard/Android is accessible,
++	//   for the sake of performance
++	if (static_branch_unlikely(&susfs_is_sdcard_android_data_not_decrypted)) {
++		if (susfs_is_current_ksu_domain()) {
++			struct mount *new_mnt = susfs_alloc_non_unshare_ksu_vfsmnt(name ?: "none");
++			mnt = &new_mnt->mnt;
++			goto bypass_orig_flow;
++		}
++	}
++#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
++
+ 	fc = fs_context_for_mount(type, flags);
+ 	if (IS_ERR(fc))
+ 		return ERR_CAST(fc);
+@@ -1157,6 +1180,9 @@
+ 	else
+ 		mnt = ERR_PTR(ret);
+ 
++#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
++bypass_orig_flow:
++#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
+ 	put_fs_context(fc);
+ 	return mnt;
+ }
+================================================================
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -1674,6 +1674,14 @@
+ 		ret = mmap_read_lock_killable(mm);
+ 		if (ret)
+ 			goto out_free;
++#ifdef CONFIG_KSU_SUSFS_SUS_MAP
++		vma = find_vma(mm, start_vaddr);
++		if (vma && vma->vm_file && SUSFS_IS_INODE_SUS_MAP(file_inode(vma->vm_file))) {
++			mmap_read_unlock(mm);
++			start_vaddr = end;
++			continue;
++		}
++#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+ 		ret = walk_page_range(start_vaddr, end, &pagemap_walk);
+ 		mmap_read_unlock(mm);
+ 		start_vaddr = end;
