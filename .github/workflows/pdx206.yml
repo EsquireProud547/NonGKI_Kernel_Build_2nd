@@ -15,7 +15,7 @@ env:
   KERNEL_SOURCE : "https://github.com/LineageOS/android_kernel_sony_sm8250.git"
   KERNEL_BRANCH : "lineage-23.2"
 
-  CLANG_SOURCE : "https://github.com/ZyCromerZ/Clang/releases/download/22.0.0git-20250928-release/Clang-22.0.0git-20250928.tar.gz"
+  CLANG_SOURCE : "https://github.com/ZyCromerZ/Clang/releases/download/23.0.0git-20260130-release/Clang-23.0.0git-20260130.tar.gz"
   CLANG_BRANCH : ""
 
   GCC_GNU : false
@@ -33,9 +33,9 @@ env:
   KERNELSU_BRANCH : ""
 
   KERNELSU_AUTO_GET : "true" # if u want easy setting kernelsu, u can true.
-  KERNELSU_AUTO_FORK : "rsuntk" # xxksu, rsuntk, next, resukisu and sukisu
+  KERNELSU_AUTO_FORK : "resukisu" # xxksu, rsuntk, next, resukisu and sukisu
 
-  SUSFS_ENABLE : false
+  SUSFS_ENABLE : true
   SUSFS_FIXED : false
 
   AK3_SOURCE : "https://github.com/EsquireProud547/AnyKernel3.git"
@@ -119,6 +119,8 @@ jobs:
         run: |
           # Only ${{ env.DEVICE_NAME }} use it.
           cd $GITHUB_WORKSPACE/device_kernel
+          wget https://raw.githubusercontent.com/EsquireProud547/NonGKI_Kernel_Build_2nd/refs/heads/mainline/susfs_fixed.patch
+          patch -p1 < susfs_fixed.patch
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
