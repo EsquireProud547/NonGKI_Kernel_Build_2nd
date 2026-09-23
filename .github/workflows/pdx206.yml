@@ -24,7 +24,7 @@ env:
   GCC_32_SOURCE : "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9.git"
   GCC_32_BRANCH : "android12L-release"
 
-  DEFCONFIG_SOURCE: "https://raw.githubusercontent.com/EsquireProud547/NonGKI_Kernel_Build_2nd/refs/heads/mainline/config"
+  DEFCONFIG_SOURCE: "https://raw.githubusercontent.com/EsquireProud547/NonGKI_Kernel_Build_2nd/refs/heads/mainline/pdx206_defconfig"
   DEFCONFIG_NAME : ""
   DEFCONFIG_ORIGIN_IMAGE: ""
   DEFCONFIG_FROM_BOOT: false
