@@ -24,8 +24,8 @@ env:
   GCC_32_SOURCE : "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9.git"
   GCC_32_BRANCH : "android12L-release"
 
-  DEFCONFIG_SOURCE: ""
-  DEFCONFIG_NAME : "vendor/kona-perf_defconfig"
+  DEFCONFIG_SOURCE: "https://raw.githubusercontent.com/EsquireProud547/NonGKI_Kernel_Build_2nd/refs/heads/mainline/config"
+  DEFCONFIG_NAME : ""
   DEFCONFIG_ORIGIN_IMAGE: ""
   DEFCONFIG_FROM_BOOT: false
 
@@ -84,7 +84,7 @@ env:
   BUILD_DEBUGGER: "true" # Output build errors.
   SKIP_PATCH: "false" # Ignore errors found in Patch Debugger.
 
-  BUILD_OTHER_CONFIG: "true" # Merge config files.
+  BUILD_OTHER_CONFIG: "false" # Merge config files.
   MERGE_CONFIG_FILES: "vendor/edo.config,vendor/pdx206.config"
 
   FREE_MORE_SPACE: "false" # if u want get more space, enabled it.
