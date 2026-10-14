@@ -13,7 +13,7 @@ env:
   EXTRA_CMDS : "LLVM=1 LLVM_IAS=1"
 
   KERNEL_SOURCE : "https://github.com/LineageOS/android_kernel_sony_sm8250.git"
-  KERNEL_BRANCH : "lineage-23.2"
+  KERNEL_BRANCH : "lineage-24.0"
 
   CLANG_SOURCE : "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.2/LLVM-23.1.2-Linux-X64.tar.xz"
   CLANG_BRANCH : ""
